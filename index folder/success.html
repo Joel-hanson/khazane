@@ -7,6 +7,7 @@
    <meta name="apple-mobile-web-app-capable" content="yes">
  <!-- Compiled and minified CSS -->
   <link rel="stylesheet" href="materialize/css/materialize.min.css">
+  <link rel="stylesheet" href="css/animate.css">
 
   <!-- Compiled and minified JavaScript -->
   
@@ -20,14 +21,17 @@
     storageBucket: "khazane2016.appspot.com",
   };
   firebase.initializeApp(config);
+
+  var database = firebase.database();
 </script>
 <script type="text/javascript">
+var email,username,userkey;
       initApp = function() {
         firebase.auth().onAuthStateChanged(function(user) {
           if (user) {
             // User is signed in.
             var displayName = user.displayName;
-            var email = user.email;
+            email = user.email;
             var emailVerified = user.emailVerified;
             var photoURL = user.photoURL;
             var uid = user.uid;
@@ -49,6 +53,27 @@
 
 document.getElementById('accdet').innerHTML=displayName+" <br>"+email;
                 
+            
+              database.ref('users/').orderByChild('email').equalTo(email).once('value').then(function(snapshot) {
+                 
+                if(snapshot.exists()){
+                  snapshot.forEach(function(childSnapshot) {
+                    username=childSnapshot.val().name;
+                    userkey=childSnapshot.key;
+                      console.log("got2 "+childSnapshot.val().email);
+                      document.getElementById("regddata").innerHTML=childSnapshot.val().name+"<br>"+childSnapshot.val().college+"<br>"+childSnapshot.val().phone;
+                      document.getElementById("registered").hidden=false; 
+                      document.getElementById("token").hidden=false; 
+
+                  });
+                }
+                  else {
+                    console.log("null");
+                    document.getElementById("registerform").hidden=false;  
+                  }
+                });
+
+
             });
           } else {
             // User is signed out.
@@ -87,7 +112,11 @@ document.getElementById('accdet').innerHTML=displayName+" <br>"+email;
                                   </div>
                                 </div>
                               </div>
+                            </div>
+                          </div>
 
+              <div class="row " id="registerform" hidden>
+                <div class="col s12 m6 l6 offset-s0 offset-m3 offset-l3 ">
 
                   <div  class=" card animated fadeInUp"  >
                             <div class="card-content black-text">
@@ -99,9 +128,7 @@ document.getElementById('accdet').innerHTML=displayName+" <br>"+email;
          <div class="input-field col s12">
           <input placeholder="College Name" id="cname" type="text" class="validate">
         </div>
-         <div class="input-field col s12">
-          <input placeholder="Team Name" id="tname" type="text" class="validate">
-        </div>
+         
          <div class="input-field col s12">
           <input placeholder="Phone Number" id="phone" type="text" class="validate">
         </div>
@@ -110,27 +137,101 @@ document.getElementById('accdet').innerHTML=displayName+" <br>"+email;
                             </div>
                         </div>
 								        
-						               
+						               </div>
+                         </div>
+
+
+            <div class="row " id="registered" hidden>
+                <div class="col s12 m6 l6 offset-s0 offset-m3 offset-l3 ">
+
+                  <div  class=" card animated fadeInUp"  >
+                            <div class="card-content black-text" >
+                              <div class="row">
+                                <div class="col s4"><img src="images/pirate.png"></div>
+                                <div class="col s8"> <span class="black-text" id="regddata"></span></div>
+                                 
+                              </div></div>
+                            </div></div>
+
 			             </div>
-		            </div>
+
+  <div class="row " id="token" >
+                <div class="col s12 m6 l6 offset-s0 offset-m3 offset-l3 ">
+                    <div  class=" card animated fadeInUp"  >
+                            <div class="card-content black-text" >
+                             
+                             <div id="lvl" class="input-field col s4">
+                                <select>
+                                  <option value="1">Level 1</option>
+                                  <option value="2">Level 2</option>
+                                </select>                              </div>
+
+                               <div class="input-field col s8">
+                                <input placeholder="Enter Key Here" id="key" type="text" class="validate">
+                              </div>
+                              <div class="">
+                                    <a class=" waves-effect waves-light btn-large" OnClick="token()">Submit</a>
+                              </div>
+                             
+
+
+                              </div>
+                              
+
+                              </div>
+           
+
+
+                </div>
+
+
+
+                      </div>
+
+
+
 			</div>
  		
 
 
      <script type="text/javascript">
-
+ $(document).ready(function() {
+    $('select').material_select();
+  });
 
      function register(){
       if(!document.getElementById('name').value)
         Materialize.toast('Please enter name.', 1000);
       else if(!document.getElementById('cname').value)
         Materialize.toast('Please enter College Name.', 1000);
-      else if(!document.getElementById('tname').value)
-        Materialize.toast('Please enter Team name.', 1000);
       else if(!document.getElementById('phone').value)
         Materialize.toast('Please enter Phone.', 1000);
       else{
         // firebase register code
+         
+         var newuser =  database.ref('users/').push();
+         newuser.set({
+            name: document.getElementById('name').value,
+            email: email,
+            phone: document.getElementById('phone').value,
+            college: document.getElementById('cname').value
+          });
+      }
+    }
+
+    function token(){
+      var vlv=$('select').val();
+       if(!document.getElementById('key').value)
+        Materialize.toast('Please enter key.', 1000);
+      else{
+        Materialize.toast('Key submitted.', 1000);
+        var newuser =  database.ref('levels/'+vlv+'/'+userkey);
+         newuser.set({
+            name: username,
+            email: email,
+            key: document.getElementById('key').value
+          });
+
       }
     }
     </script>
@@ -138,4 +239,4 @@ document.getElementById('accdet').innerHTML=displayName+" <br>"+email;
 
 
 
- </html>khazane2016
+ </html>
